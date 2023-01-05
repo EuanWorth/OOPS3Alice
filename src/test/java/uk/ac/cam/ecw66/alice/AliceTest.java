@@ -52,6 +52,77 @@ public class AliceTest {
   }
 
   @Test
+  public void countWords_returnCorrect_WhenWordsPresent() {
+    //ARRANGE
+    List<Token> words = List.of(new Token(".", ".", 1.0), new Token("Good","A",1), new Token("Cheese","N",1), new Token("Dog","N",1), new Token(",", ",", 1.0));
+
+    // ACT
+    long count = Alice.countWords(words);
+
+    // ASSERT
+    assertThat(count).isEqualTo(3);
+  }
+
+  @Test
+  public void properNounsReturns0WhenNonePresent() {
+    //ARRANGE
+    List<Token> words = List.of(new Token(".", ".", 1.0), new Token("Good","A",1), new Token("Cheese","N",1), new Token("Dog","N",1), new Token(",", ",", 1.0));
+
+    // ACT
+    List<String> count = Alice.properNouns(words, 6);
+
+    // ASSERT
+    assertThat(count.toString()).isEqualTo("[]");
+  }
+
+  @Test
+  public void properNounsReturnsInOrderWhenPresent() {
+    //ARRANGE
+    List<Token> words = List.of(new Token(".", ".", 1.0), new Token("Good","NNP",1), new Token("Cheese","NNP",1), new Token("Cheese","NNP",1), new Token("Dog","N",1), new Token(",", ",", 1.0));
+
+    // ACT
+    List<String> count = Alice.properNouns(words, 6);
+
+    // ASSERT
+    assertThat(count.toString()).isEqualTo("[Cheese, Good]");
+  }
+  @Test
+  public void properNounsReturns0WhenNoTokensPresent() {
+    //ARRANGE
+    List<Token> words = List.of();
+
+    // ACT
+    List<String> count = Alice.properNouns(words, 6);
+
+    // ASSERT
+    assertThat(count.toString()).isEqualTo("[]");
+  }
+
+  @Test
+  public void vocabularyReturns0WhenNoWordsPresent() {
+    //ARRANGE
+    List<Token> words = List.of(new Token(".", ".", 1.0), new Token(",", ",", 1.0));
+
+    // ACT
+    List<String> count = Alice.vocabulary(words, 6);
+
+    // ASSERT
+    assertThat(count.toString()).isEqualTo("[]");
+  }
+
+  @Test
+  public void vocabularyReturns0WhenNoTokensPresent() {
+    //ARRANGE
+    List<Token> words = List.of();
+
+    // ACT
+    List<String> count = Alice.vocabulary(words, 6);
+
+    // ASSERT
+    assertThat(count.toString()).isEqualTo("[]");
+  }
+
+  @Test
   public void vocabulary_ignoresCase() {
     // ARRANGE
     List<Token> words =
@@ -69,6 +140,23 @@ public class AliceTest {
     assertThat(vocab).containsExactly("alice", "king");
   }
 
+  @Test
+  public void vocabulary_returnsEnough() {
+    // ARRANGE
+    List<Token> words =
+            List.of(
+                    new Token("Alice", "NNP", 1.0),
+                    new Token("alice", "NNP", 1.0),
+                    new Token("Queen", "NNP", 1.0),
+                    new Token("King", "NNP", 1.0),
+                    new Token("King", "NNP", 1.0));
+
+    // ACT
+    List<String> vocab = Alice.vocabulary(words, 9);
+
+    // ASSERT
+    assertThat(vocab).containsExactly("alice", "king", "queen");
+  }
   @Test
   public void topN_returnsTopOne() {
     // ARRANGE
@@ -91,6 +179,65 @@ public class AliceTest {
 
     // ASSERT
     assertThat(top).containsExactly("apple", "pear", "banana");
+  }
+
+  @Test
+  public void leastConfidentToken_ReturnsNull_IfEmpty() {
+    //ARRANGE
+    List<Token> list = List.of();
+
+    //ACT
+    Token LeastConfident = Alice.leastConfidentToken(list);
+
+    //ASSERT
+    assertThat(LeastConfident).isNull();
+  }
+
+  @Test
+  public void leastConfidentToken_Returns_IfNotEmpty() {
+    //ARRANGE
+    List<Token> list = List.of(
+            new Token("Alice", "NNP", 1.0),
+            new Token("alice", "NNP", 1.0),
+            new Token("Queen", "NNP", 0.7),
+            new Token("King", "NNP", 1.0),
+            new Token("King", "NNP", 1.0));
+
+    //ACT
+    Token LeastConfident = Alice.leastConfidentToken(list);
+
+    //ASSERT
+    assertThat(LeastConfident.contents()).isEqualTo("Queen");
+  }
+
+  @Test
+  public void PoSFrequenciesReturnsCorrectMapIfToekns() {
+    //ARRANGE
+    List<Token> tokens = List.of(
+            new Token("Alice", "A", 1.0),
+            new Token("alice", "A", 1.0),
+            new Token("Queen", "Q", 1.0),
+            new Token("King", "K", 1.0),
+            new Token("King", "K", 1.0)
+    );
+
+    //ACT
+    Map<String, Long> PoSFrequencyMap = Alice.posFrequencies(tokens);
+
+    //ASSERT
+    assertThat(PoSFrequencyMap).isEqualTo(Map.of("A",2L,"Q",1L,"K",2L));
+  }
+
+  @Test
+  public void PoSFrequenciesReturnsEmptyMapIfNoTokens() {
+    //ARRANGE
+    List<Token> tokens = List.of();
+
+    //ACT
+    Map<String, Long> PoSFrequencyMap = Alice.posFrequencies(tokens);
+
+    //ASSERT
+    assertThat(PoSFrequencyMap).isEqualTo(Map.of());
   }
 
   // This test is not really useful but its here to make sure we get coverage of the Token class
