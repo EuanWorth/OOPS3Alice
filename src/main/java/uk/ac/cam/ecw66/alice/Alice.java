@@ -16,24 +16,14 @@
 
 package uk.ac.cam.ecw66.alice;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Alice {
 
   /** Return the number of tokens whose contents is a word. */
   static long countWords(List<Token> tokens) {
-    long counter = 0;
-    for (Token t : tokens) {
-      if (!t.isWord()) {
-        continue;
-      }
-      counter++;
-    }
-    return counter;
+    return tokens.stream().filter(Token::isWord).count();
   }
 
   /**
@@ -44,14 +34,11 @@ public class Alice {
    * @return a list of proper nouns
    */
   static List<String> properNouns(List<Token> tokens, int size) {
-    Map<String, Long> nounCount = new HashMap<>();
-    for (Token t : tokens) {
-      if (!t.partOfSpeech().equals("NNP")) {
-        continue;
-      }
-      String word = t.contents();
-      nounCount.put(word, nounCount.getOrDefault(word, 0L) + 1);
-    }
+    Map<String, Long> nounCount =
+            tokens.stream()
+                    .filter(t -> t.partOfSpeech().equals("NNP"))
+                    .collect(Collectors.groupingBy(Token::contents,Collectors.counting()));
+
     return topN(size, nounCount);
   }
 
@@ -63,14 +50,11 @@ public class Alice {
    * @return a list of words
    */
   static List<String> vocabulary(List<Token> tokens, int size) {
-    Map<String, Long> frequencyCount = new HashMap<>();
-    for (Token t : tokens) {
-      if (!t.isWord()) {
-        continue;
-      }
-      String word = t.contents().toLowerCase();
-      frequencyCount.put(word, frequencyCount.getOrDefault(word, 0L) + 1);
-    }
+    Map<String, Long> frequencyCount = tokens.stream()
+            .filter(Token::isWord)
+            .collect(
+                    Collectors.groupingBy(t -> t.contents().toLowerCase(),Collectors.counting())
+            );
     return topN(size, frequencyCount);
   }
 
@@ -83,14 +67,10 @@ public class Alice {
    * @return a list of the most frequent items
    */
   static <T> List<T> topN(int size, Map<T, Long> frequencies) {
-    List<Map.Entry<T, Long>> items = new ArrayList<>(frequencies.entrySet());
-    items.sort(Map.Entry.<T, Long>comparingByValue().reversed());
-    Iterator<Map.Entry<T, Long>> iterator = items.iterator();
-    List<T> result = new ArrayList<>();
-    while (size-- > 0 && iterator.hasNext()) {
-      result.add(iterator.next().getKey());
-    }
-    return result;
+    return frequencies.entrySet().stream()
+            .sorted(Map.Entry.<T, Long>comparingByValue().reversed())
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList()).subList(0, Math.min(size, frequencies.size()));
   }
 
   /**
@@ -98,13 +78,7 @@ public class Alice {
    * provided.
    */
   static Token leastConfidentToken(List<Token> tokens) {
-    Token min = null;
-    for (Token t : tokens) {
-      if (min == null || t.confidence() < min.confidence()) {
-        min = t;
-      }
-    }
-    return min;
+    return tokens.stream().min(Comparator.comparing(Token::confidence)).orElse(null);
   }
 
   /**
@@ -114,11 +88,6 @@ public class Alice {
    * @return a map from part of speech tag to its frequency
    */
   static Map<String, Long> posFrequencies(List<Token> tokens) {
-    Map<String, Long> freq = new HashMap<>();
-    for (Token t : tokens) {
-      String pos = t.partOfSpeech();
-      freq.put(pos, freq.getOrDefault(pos, 0L) + 1);
-    }
-    return freq;
+    return tokens.stream().collect(Collectors.groupingBy(Token::partOfSpeech,Collectors.counting()));
   }
 }
