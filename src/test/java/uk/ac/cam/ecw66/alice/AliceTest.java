@@ -35,7 +35,7 @@ public class AliceTest {
     // ACT
     long count = Alice.countWords(words);
 
-    // ASSEERT
+    // ASSERT
     assertThat(count).isEqualTo(0);
   }
 
@@ -47,7 +47,7 @@ public class AliceTest {
     // ACT
     long count = Alice.countWords(words);
 
-    // ASSEERT
+    // ASSERT
     assertThat(count).isEqualTo(0);
   }
 
